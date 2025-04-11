@@ -19,7 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import CustomTooltip from "@/components/CustomTooltip/CustomTooltip";
 
 const Cart = () => {
-  const { clearCart, getProductsInCart } = useCart();
+  const { clearCart, products } = useCart();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isEmpty, setIsEmpty] = useState<boolean>(false);
@@ -38,7 +38,6 @@ const Cart = () => {
   };
 
   const fetchCartDetails = async () => {
-    const products = await getProductsInCart();
     if (products.length > 0) {
       setIsEmpty(false);
       setCartProducts(products);
@@ -52,7 +51,7 @@ const Cart = () => {
     setIsLoading(true);
     fetchCartDetails();
     setIsLoading(false);
-  }, [getProductsInCart]);
+  }, [products]);
 
   return (
     <div className="min-h-[90vh] pl-5 pr-5 sm:pl-20 sm:pr-20 pt-5 pb-5 space-y-2">

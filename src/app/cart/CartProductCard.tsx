@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Product } from "@/interface/product";
@@ -18,6 +18,10 @@ const CartProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { removeFromCart } = useCart();
   const router = useRouter();
   const [src, setSrc] = useState(product.image);
+
+  useEffect(() => {
+    setSrc(product.image);
+  }, [product]);
 
   return (
     <Card className="gap-0 pr-0">
