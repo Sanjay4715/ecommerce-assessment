@@ -34,7 +34,10 @@ const HomeProductCard: React.FC<CardProps> = ({ product }) => {
   }, [product]);
 
   return (
-    <Card className="border-0 z-1 flex gap-3">
+    <Card
+      onClick={() => router.push(`/product/${product.id}`)}
+      className="border-0 z-1 flex gap-3 cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:scale-[1.02]"
+    >
       <div className="relative aspect-square w-full h-50 overflow-hidden rounded-tl-lg rounded-tr-lg">
         <Image
           src={imageSrc}
