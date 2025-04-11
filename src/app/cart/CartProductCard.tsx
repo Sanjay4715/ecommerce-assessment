@@ -1,23 +1,26 @@
 "use client";
 
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Product } from "@/interface/product";
 import Logo from "@/public/Logo.svg";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-
+import { AiFillDelete } from "react-icons/ai";
+import CustomTooltip from "@/components/CustomTooltip/CustomTooltip";
+import { useCart } from "@/context/CartContext";
 interface ProductCardProps {
   product: Product;
 }
 
 const CartProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  const { removeFromCart } = useCart();
   const router = useRouter();
   const [src, setSrc] = useState(product.image);
 
   return (
-    <Card className="gap-0">
+    <Card className="gap-0 pr-0">
       <CardHeader className="flex items-center space-x-3 gap-0">
         <Image
           src={src}
@@ -49,6 +52,16 @@ const CartProductCard: React.FC<ProductCardProps> = ({ product }) => {
             ${product.price * product?.quantity}
           </CardTitle>
         )}
+        <CustomTooltip
+          triggerContent={
+            <AiFillDelete
+              size={20}
+              className="cursor-pointer"
+              onClick={() => removeFromCart(product.id)}
+            />
+          }
+          message={"Remove Product from cart"}
+        />
       </CardHeader>
     </Card>
   );

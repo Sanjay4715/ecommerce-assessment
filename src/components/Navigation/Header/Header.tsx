@@ -7,6 +7,7 @@ import { Moon, Sun, Search, User, User2Icon } from "lucide-react";
 
 import Logo from "@/public/Logo.svg";
 import { Input } from "@/components/ui/input";
+import { IoMdCart } from "react-icons/io";
 import { IoCartOutline } from "react-icons/io5";
 import CustomTooltip from "@/components/CustomTooltip/CustomTooltip";
 import { Button } from "@/components/ui/button";
@@ -23,8 +24,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useCart } from "@/context/CartContext";
+import { Badge } from "@/components/ui/badge";
 
 const Header = () => {
+  const { productCount } = useCart();
   const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const router = useRouter();
@@ -32,7 +36,6 @@ const Header = () => {
   const [userInitial, setUserInitial] = useState<string>("");
 
   useEffect(() => {
-    console.log(user);
     setUserLoading(true);
     if (user) {
       setUserInitial(user.user.charAt(0).toUpperCase());
@@ -76,10 +79,22 @@ const Header = () => {
         <nav className="flex items-center space-x-6 ml-auto pl-5 pr-5">
           <CustomTooltip
             triggerContent={
-              <IoCartOutline
-                className="h-5 w-5 cursor-pointer"
-                onClick={() => router.push("/cart")}
-              />
+              productCount > 0 ? (
+                <div className="relative inline-block">
+                  <IoMdCart
+                    className="h-5 w-5 cursor-pointer"
+                    onClick={() => router.push("/cart")}
+                  />
+                  <Badge className="absolute -top-3 -right-4 text-xs px-1.5 py-0.5 rounded-full bg-[var(--site-primary)] text-white">
+                    {productCount}
+                  </Badge>
+                </div>
+              ) : (
+                <IoCartOutline
+                  className="h-5 w-5 cursor-pointer"
+                  onClick={() => router.push("/cart")}
+                />
+              )
             }
             message={<p>Check your cart</p>}
           />

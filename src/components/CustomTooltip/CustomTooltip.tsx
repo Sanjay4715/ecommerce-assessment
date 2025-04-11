@@ -18,7 +18,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger>{triggerContent}</TooltipTrigger>
+        <TooltipTrigger className="cursor-pointer">{triggerContent}</TooltipTrigger>
         <TooltipContent>{message}</TooltipContent>
       </Tooltip>
     </TooltipProvider>

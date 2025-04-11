@@ -16,7 +16,9 @@ import { useCart } from "@/context/CartContext";
 import api from "@/lib/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AxiosError, AxiosResponse } from "axios";
-import { useEffect } from "react";
+import { LoaderCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -64,8 +66,10 @@ const formSchema = z.object({
 });
 
 const Checkout = () => {
+  const router = useRouter();
   const { user } = useAuth();
-  const { products } = useCart();
+  const { products, clearCart } = useCart();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const fetchUserDetails = async () => {
     try {
@@ -111,6 +115,11 @@ const Checkout = () => {
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     console.log("go", { ...values, totalPrice: calculateTotal() });
+    setIsLoading(true);
+    clearCart();
+    toast.success("Order placed successfully");
+    setIsLoading(false);
+    router.push("/");
   };
 
   const calculateTotal = () => {
@@ -264,7 +273,10 @@ const Checkout = () => {
                 <div className="w-[85%] font-bold">Sub Total</div>
                 <div className="ml-auto">${calculateTotal()}</div>
               </div>
-              <Button className="cursor-pointer">Place Order</Button>
+              <Button type="submit" className="cursor-pointer">
+                {isLoading && <LoaderCircle className="animate-spin-slow" />}
+                Place Order
+              </Button>
             </CardHeader>
           </Card>
         </form>

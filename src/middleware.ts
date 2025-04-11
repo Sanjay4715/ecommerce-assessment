@@ -13,5 +13,9 @@ export function middleware(request: NextRequest) {
   ) {
     return NextResponse.redirect(new URL("/", request.url));
   }
+
+  if ((!user || !accessToken) && request.nextUrl.pathname === "/checkout") {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
   return NextResponse.next();
 }

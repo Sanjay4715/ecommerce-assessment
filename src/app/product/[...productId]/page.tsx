@@ -5,20 +5,24 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Rating } from "@/components/ui/rating";
 import ZoomableImage from "@/components/ZoomableImage/ZoomableImage";
+import { useCart } from "@/context/CartContext";
 import { Product } from "@/interface/product";
 import api from "@/lib/api";
 import { AxiosError, AxiosResponse } from "axios";
-import { LoaderCircle } from "lucide-react";
+import { LoaderCircle, Minus, Plus } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 const ProductDetails = () => {
+  const { addToCart, productExistsOnCart } = useCart();
   const params = useParams();
   const { productId } = params;
   const [isFetching, setIsFetching] = useState<boolean>(false);
   const [product, setProduct] = useState<Product | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [productInCart, setProductInCart] = useState<Product>();
+  const [productInCartQuantity, setProductInCartQuantity] = useState<number>(0);
 
   const fetchProductById = async (id: string) => {
     try {
@@ -53,8 +57,26 @@ const ProductDetails = () => {
   useEffect(() => {
     if (productId?.[0]) {
       fetchProductById(productId[0]);
+      checkIfProductExistsOnCart(productId[0]);
     }
   }, [productId]);
+
+  const checkIfProductExistsOnCart = async (id: string) => {
+    const { productInCart } = await productExistsOnCart(id);
+    setProductInCart(productInCart);
+    if (productInCart && productInCart.quantity) {
+      setProductInCartQuantity(productInCart.quantity);
+    } else {
+      setProductInCartQuantity(0);
+    }
+  };
+
+  const handleAddToCart = (product: Product) => {
+    addToCart({
+      ...product,
+      quantity: productInCartQuantity === 0 ? 1 : productInCartQuantity,
+    });
+  };
 
   if (isFetching) {
     return (
@@ -82,7 +104,38 @@ const ProductDetails = () => {
               </div>
             </div>
             <b>${product.price}</b>
-            <Button className="w-fit">Add To Cart</Button>
+
+            {productInCart && (
+              <div className="font-bold">
+                The product is already available on your cart.
+              </div>
+            )}
+            <div className="flex items-center space-x-3">
+              <Button
+                onClick={
+                  productInCartQuantity === 0
+                    ? () => {}
+                    : () => setProductInCartQuantity((prev) => prev - 1)
+                }
+                disabled={productInCartQuantity === 0}
+                className="cursor-pointer bg-[var(--site-primary)] dark:bg-white"
+              >
+                <Minus />
+              </Button>
+              <div>{productInCartQuantity}</div>
+              <Button
+                onClick={() => setProductInCartQuantity((prev) => prev + 1)}
+                className="cursor-pointer bg-[var(--site-primary)] dark:bg-white"
+              >
+                <Plus />
+              </Button>
+            </div>
+            <Button
+              className="w-fit cursor-pointer bg-[var(--site-primary)] dark:bg-white"
+              onClick={() => handleAddToCart(product)}
+            >
+              {productInCart ? "Update In Cart" : "Add To Cart"}
+            </Button>
             <div>{product.description}</div>
           </div>
         </div>

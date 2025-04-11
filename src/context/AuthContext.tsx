@@ -44,6 +44,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(null);
     deleteCookie("accessToken"); // delete acceessToken from a cookie
     deleteCookie("user"); // delete acceessToken from a cookie
+    localStorage.setItem("cartProducts", "");
   };
 
   useEffect(() => {

@@ -1,67 +1,165 @@
-// context/CartContext.tsx
-"use client"; // Add this directive at the top
-
+"use client";
 import { Product } from "@/interface/product";
-import api from "@/lib/api";
-import { AxiosError, AxiosResponse } from "axios";
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useAuth } from "./AuthContext";
+import { useRouter } from "next/navigation";
+import api from "@/lib/api";
 
 type CartContextType = {
   products: Product[];
+  productCount: number; // Add productCount to context
   clearCart: () => void;
+  addToCart: (product: Product) => void;
+  removeFromCart: (id: string) => void;
+  productExistsOnCart: (id: string) => {
+    productInCart: Product;
+    status: boolean;
+  };
+  getProductsInCart: () => Product[];
 };
 
 const CartContext = createContext<CartContextType | null>(null);
 
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
+  const router = useRouter();
   const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
+  const [productCount, setProductCount] = useState<number>(0); // Add productCount state
 
-  const clearCart = () => {
-    setProducts([]);
-    localStorage.setItem("cartProducts", "");
+  // Update productCount whenever products change
+  useEffect(() => {
+    getCartFromLocalStorage();
+  }, []);
+
+  const getCartFromLocalStorage = (): Product[] => {
+    const stringifiedProducts = localStorage.getItem("cartProducts");
+    if (stringifiedProducts && stringifiedProducts.length > 0) {
+      const parsedData = JSON.parse(stringifiedProducts);
+      setProducts(parsedData);
+      setProductCount(parsedData.length);
+      return stringifiedProducts ? JSON.parse(stringifiedProducts) : [];
+    }
+    return [];
   };
 
-  const fetchCartDetails = async (userId: string) => {
+  const updateLocalStorage = (cartProducts: Product[]) => {
+    localStorage.setItem("cartProducts", JSON.stringify(cartProducts));
+    setProducts(cartProducts); // This will trigger the useEffect above
+    setProductCount(cartProducts.length);
+  };
+
+  const clearCart = async () => {
     try {
-      const response: AxiosResponse = await api.get(`/carts/${userId}`, {
-        requiresAuth: false, // Move requiresAuth to the config root
-      });
-      if (response.data.products.length > 0) {
-        const productsInCart = response.data.products;
-        const productsMapped = [];
-        for (let i = 0; i < productsInCart.length; i++) {
-          const product = productsInCart[i];
-          const productRes = await api.get(`/products/${product.productId}`, {
-            requiresAuth: false,
-          });
-          productsMapped.push({
-            ...productRes.data,
-            quantity: product.quantity,
-          });
+      if (user) {
+        await api.delete(`/carts/${user?.sub}`, { requiresAuth: false });
+      }
+      updateLocalStorage([]);
+      toast.success("Cart Cleared Successfully.");
+    } catch (error: unknown) {
+      let errorMessage = "Failed while clearing cart";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
+      console.error("Clearing Cart:", error);
+    }
+  };
+
+  const addToCart = async (product: Product) => {
+    if (!user) {
+      toast.error("Please login to add the product to cart");
+      router.push("/login");
+      return;
+    }
+
+    try {
+      const stringifiedProducts = localStorage.getItem("cartProducts");
+      const cartProducts = JSON.parse(stringifiedProducts ?? "");
+      if (cartProducts) {
+        const productIndex = cartProducts.findIndex(
+          (item: Product) => item.id.toString() === product.id.toString()
+        );
+
+        if (productIndex !== -1) {
+          if (product.quantity) {
+            cartProducts[productIndex].quantity += product.quantity;
+          }
+          toast.success(
+            `Product ${product.title} quantity increased by ${product.quantity}`
+          );
+        } else {
+          cartProducts.push(product);
+          toast.success(
+            `Product ${product.title} added to cart with quantity ${product.quantity}`
+          );
         }
-        localStorage.setItem("cartProducts", JSON.stringify(productsMapped));
-        setProducts(productsMapped);
-      } else {
-        setProducts([]);
+
+        updateLocalStorage(cartProducts);
       }
     } catch (error: unknown) {
-      if (error instanceof AxiosError && error.response) {
-        toast.error("failed while fetching cart details");
+      let errorMessage = "Failed to add product to cart";
+      if (error instanceof Error) {
+        errorMessage = error.message;
       }
+      toast.error(errorMessage);
+      console.error("Add to cart error:", error);
     }
   };
 
-  useEffect(() => {
-    if (user && user.sub) {
-      fetchCartDetails(user?.sub);
+  const removeFromCart = async (id: string) => {
+    try {
+      const cartProducts = getCartFromLocalStorage();
+      const updatedCart = cartProducts.filter(
+        (item) => item.id.toString() !== id.toString()
+      );
+      updateLocalStorage(updatedCart);
+      toast.success("Product removed from cart.");
+    } catch (error: unknown) {
+      let errorMessage = "Failed to remove product from cart";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
+      console.error("Remove from cart error:", error);
     }
-  }, [user]);
+  };
+
+  const productExistsOnCart = (id: string) => {
+    const stringifiedProducts = localStorage.getItem("cartProducts");
+    const cartProducts = JSON.parse(stringifiedProducts ?? "");
+    // Find the index of the product in the cart
+    const productInCart = cartProducts.find(
+      (item: Product) => item.id.toString() === id.toString()
+    );
+    const productIndex = cartProducts.findIndex(
+      (item: Product) => item.id.toString() === id.toString()
+    );
+    if (productIndex !== -1) {
+      return { productInCart, status: true };
+    } else {
+      return { productInCart: null, status: false };
+    }
+  };
+
+  const getProductsInCart = () => {
+    const stringifiedProducts = localStorage.getItem("cartProducts");
+    const cartProducts = JSON.parse(stringifiedProducts ?? "");
+    return cartProducts;
+  };
 
   return (
-    <CartContext.Provider value={{ products, clearCart }}>
+    <CartContext.Provider
+      value={{
+        products,
+        productCount, // Include productCount in context value
+        addToCart,
+        clearCart,
+        removeFromCart,
+        productExistsOnCart,
+        getProductsInCart,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );
@@ -70,7 +168,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {
-    throw new Error("useCart must be used within an CartProviderr");
+    throw new Error("useCart must be used within a CartProvider");
   }
   return context;
 };
