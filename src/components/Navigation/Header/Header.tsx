@@ -3,15 +3,18 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useTheme } from "next-themes";
-import { Moon, Sun, Search } from "lucide-react";
+import { Moon, Sun, Search, User } from "lucide-react";
 
 import Logo from "@/public/Logo.svg";
 import { Input } from "@/components/ui/input";
 import { IoCartOutline } from "react-icons/io5";
 import CustomTooltip from "@/components/CustomTooltip/CustomTooltip";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 const Header = () => {
   const { theme, setTheme } = useTheme();
+  const router = useRouter();
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -40,17 +43,14 @@ const Header = () => {
           />
         </div>
 
-        {/* Desktop Navigation */}
         <nav className="flex items-center space-x-6 ml-auto pl-5 pr-5">
-          <div>
-            <CustomTooltip
-              triggerContent={
-                <IoCartOutline className="h-5 w-5 cursor-pointer" />
-              }
-              message={<p>Check your cart</p>}
-            />
-          </div>
-          <div onClick={toggleTheme}>
+          <CustomTooltip
+            triggerContent={
+              <IoCartOutline className="h-5 w-5 cursor-pointer" />
+            }
+            message={<p>Check your cart</p>}
+          />
+          <div onClick={toggleTheme} className="flex">
             {theme === "dark" ? (
               <CustomTooltip
                 triggerContent={<Sun size={18} className="cursor-pointer" />}
@@ -62,6 +62,14 @@ const Header = () => {
                 message={<p>Dark Mode</p>}
               />
             )}
+          </div>
+          <div>
+            <Button
+              className="cursor-pointer"
+              onClick={() => router.push("/login")}
+            >
+              <User /> User Login
+            </Button>
           </div>
         </nav>
       </div>

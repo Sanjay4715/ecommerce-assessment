@@ -122,6 +122,11 @@
   }
 }
 
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
 /* For Option 1 */
 .transition-transform {
   transition-property: transform;
