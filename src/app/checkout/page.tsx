@@ -70,15 +70,6 @@ const Checkout = () => {
     },
   });
 
-  // Format card number with spaces every 4 digits
-  const formatCardNumber = (value: string) => {
-    return value
-      .replace(/\s/g, "")
-      .replace(/(\d{4})/g, "$1 ")
-      .trim()
-      .substring(0, 19);
-  };
-
   // Format expiration date as MM/YY
   const formatExpirationDate = (value: string) => {
     return value

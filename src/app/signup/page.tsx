@@ -51,7 +51,7 @@ const formSchema = z.object({
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, ] = useState<boolean>(false);
 
   const togglePasswordVisibility = () => {
     setShowPassword((prevState) => !prevState);
