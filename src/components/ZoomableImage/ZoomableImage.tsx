@@ -3,7 +3,17 @@
 import Image from "next/image";
 import { useState, useRef } from "react";
 
-const ZoomableImage = ({ src, alt }: { src: string; alt: string }) => {
+const ZoomableImage = ({
+  src,
+  alt,
+  width,
+  height,
+}: {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+}) => {
   const [position, setPosition] = useState({ x: 0, y: 0, show: false });
   const [backgroundPosition, setBackgroundPosition] = useState("0% 0%");
   const imageRef = useRef<HTMLDivElement>(null);
@@ -27,7 +37,14 @@ const ZoomableImage = ({ src, alt }: { src: string; alt: string }) => {
         onMouseMove={handleMouseMove}
         onMouseLeave={() => setPosition({ ...position, show: false })}
       >
-        <Image src={src} alt={alt} width={300} height={300} className="object-contain" />
+        <Image
+          src={src}
+          alt={alt}
+          width={width ?? 500}
+          height={height ?? 500}
+          className="object-contain w-full h-full"
+          quality={100}
+        />
 
         {/* Zoomed Area */}
         {position.show && (
