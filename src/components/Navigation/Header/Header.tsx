@@ -46,7 +46,10 @@ const Header = () => {
         <nav className="flex items-center space-x-6 ml-auto pl-5 pr-5">
           <CustomTooltip
             triggerContent={
-              <IoCartOutline className="h-5 w-5 cursor-pointer" />
+              <IoCartOutline
+                className="h-5 w-5 cursor-pointer"
+                onClick={() => router.push("/cart")}
+              />
             }
             message={<p>Check your cart</p>}
           />

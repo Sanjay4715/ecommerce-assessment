@@ -1,42 +1,20 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { MinusIcon, PlusIcon } from "lucide-react";
+import { useState } from "react";
+import CartProductCard from "./CartProductCard";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Rating } from "@/components/ui/rating";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { sortByOptions } from "@/constants";
-import { Product } from "@/interface/product";
-import { X } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-interface ProductSectionProps {
-  categories: string[];
-}
-
-const ProductSection: React.FC<ProductSectionProps> = ({ categories }) => {
-  const [searchProduct, setSearchProduct] = useState<string>("");
-  const [sortBy, setSortBy] = useState<string>("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [page, setPage] = useState<number>(1);
-  const [moreLoading, setMoreLoading] = useState<boolean>(false);
-  const [hasMore, setHasMore] = useState<boolean>(true);
-  const [products, setProducts] = useState<Product[]>([]);
+const Cart = () => {
+  const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
 
   const mockProducts = [
     {
@@ -301,173 +279,57 @@ const ProductSection: React.FC<ProductSectionProps> = ({ categories }) => {
     },
   ];
 
-  // Mock API fetch function - replace with your actual API call
-  const fetchProducts = useCallback(
-    async (pageNumber: number): Promise<Product[]> => {
-      setMoreLoading(true);
-      try {
-        // Simulate API delay
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        setPage(pageNumber);
-        return mockProducts;
-      } finally {
-        setMoreLoading(false);
-      }
-    },
-    []
-  );
-
-  // Initial load and load more function
-  const loadProducts = useCallback(async () => {
-    if (!hasMore || moreLoading) return;
-
-    const newProducts = await fetchProducts(page);
-    if (newProducts.length === 0) {
-      setHasMore(false);
-      return;
-    }
-
-    setProducts((prev) => [...prev, ...newProducts]);
-    setPage((prev) => prev + 1);
-  }, [page, hasMore, moreLoading, fetchProducts]);
-
-  // Handle scroll event
-  useEffect(() => {
-    const handleScroll = () => {
-      if (
-        window.innerHeight + document.documentElement.scrollTop >=
-          document.documentElement.offsetHeight - 500 &&
-        !moreLoading
-      ) {
-        loadProducts();
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [moreLoading, loadProducts]);
-
-  // Initial load
-  useEffect(() => {
-    loadProducts();
-  }, []); // Empty dependency array to run only once on mount
+  const calculateTotal = () => {
+    return mockProducts.reduce((acc, item) => {
+      acc += item.price;
+      return acc;
+    }, 0);
+  };
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center space-x-3">
-        <p className="text-2xl font-bold">Products</p>
-        <Input
-          value={searchProduct}
-          onChange={(e) => setSearchProduct(e.target.value)}
-          placeholder="Search Products"
-          className="w-100 focus-visible:border-[var(--site-primary)] focus-visible:ring-[var(--site-primary)] focus-visible:ring-[1px]"
-        />
-        <div className="ml-auto flex space-x-2">
-          <Select
-            onValueChange={(value) => {
-              setSortBy(value);
-            }}
-            value={sortBy}
-          >
-            <SelectTrigger className="w-full focus-visible:border-[var(--site-primary)] focus-visible:ring-[var(--site-primary)] focus-visible:ring-[1px]">
-              <SelectValue placeholder="Select Sort by" />
-            </SelectTrigger>
-            <SelectContent position="item-aligned">
-              {sortByOptions.map((sortBy, index) => (
-                <SelectItem key={index} value={sortBy}>
-                  {sortBy}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            onValueChange={(value) => {
-              setSelectedCategory(value);
-            }}
-            value={selectedCategory}
-          >
-            <SelectTrigger className="w-full focus-visible:border-[var(--site-primary)] focus-visible:ring-[var(--site-primary)] focus-visible:ring-[1px]">
-              <SelectValue placeholder="Filter By Category" />
-            </SelectTrigger>
-            <SelectContent position="item-aligned">
-              {categories.map((category, index) => (
-                <SelectItem key={index} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {(selectedCategory || sortBy) && (
-        <div className="flex space-x-2 items-center">
-          <p>Filter Used: </p>
-          {selectedCategory && (
-            <div className="flex items-center border-2 rounded-full pl-2 pr-2 space-x-1">
-              <p className="text-sm">{selectedCategory}</p>
-              <X
-                size={15}
-                className="cursor-pointer"
-                onClick={() => setSelectedCategory("")}
-              />
-            </div>
-          )}
-          {sortBy && (
-            <div className="flex items-center border-2 rounded-full pl-2 pr-2 space-x-1">
-              <p className="text-sm">{sortBy}</p>
-              <X
-                size={15}
-                className="cursor-pointer"
-                onClick={() => setSortBy("")}
-              />
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {products.map((product, index) => (
-          <Card key={index} className="border-0 z-1 flex gap-3">
-            <div className="relative aspect-square w-full h-50 overflow-hidden rounded-tl-lg rounded-tr-lg">
-              <Image
-                src={product.image}
-                alt={product.title}
-                fill
-                className="object-contain"
-                quality={100}
-              />
-            </div>
-            <CardHeader>
-              <CardTitle>{product.title}</CardTitle>
+    <div className="min-h-[90vh] pl-5 pr-5 sm:pl-20 sm:pr-20 pt-5 pb-5">
+      <div>Shopping Cart</div>
+      <div className="flex space-x-5">
+        <div className="w-[70%] space-y-2">
+          <Card className="gap-0">
+            <CardHeader className="flex items-center space-x-3 gap-0 font-bold">
+              <div className="w-[15%] flex justify-center">Image</div>
+              <div className="w-[50%] space-y-2">Product Title</div>
+              <div className="w-[20%] flex justify-center">Price</div>
+              <div className="w-[20%] flex justify-center">Quantity</div>
+              <div className="w-[20%] flex justify-center">Sub Total</div>
             </CardHeader>
-            <CardContent>
-              <CardTitle>${product.price}</CardTitle>
-              <CardTitle>
-                <Rating value={product.rating.rate} />
-              </CardTitle>
-            </CardContent>
-            <CardContent>
-              <CardTitle>
-                <Badge
-                  variant="outline"
-                  className="border-[var(--site-primary)]"
-                >
-                  <Link href={`product/category/${product.category}`}>
-                    {product.category}
-                  </Link>
-                </Badge>
-              </CardTitle>
-            </CardContent>
-            <CardFooter className="mt-auto">
-              <Button>Add To Cart</Button>
-            </CardFooter>
           </Card>
-        ))}
+          {mockProducts.map((product, index) => (
+            <CartProductCard key={index} product={product} />
+          ))}
+        </div>
+        <Card className="w-[30%] h-fit">
+          <CardHeader className="space-y-5">
+            <CardTitle>Order Summary</CardTitle>
+            <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+              <CollapsibleTrigger asChild>
+                <div className="flex items-center">
+                  <div>
+                    {isOpen ? <MinusIcon size={15} /> : <PlusIcon size={15} />}
+                  </div>
+                  <div className="flex items-center">Order Total:</div>
+                  <div className="ml-auto">${calculateTotal()}</div>
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-2">
+                <div>abc</div>
+                <div>efg</div>
+              </CollapsibleContent>
+            </Collapsible>
+            <Button className="cursor-pointer" onClick={() => router.push("/checkout")}>
+              Proceed to checkout
+            </Button>
+          </CardHeader>
+        </Card>
       </div>
-      {moreLoading && <div className="text-center">Loading Products...</div>}
     </div>
   );
 };
 
-export default ProductSection;
+export default Cart;
