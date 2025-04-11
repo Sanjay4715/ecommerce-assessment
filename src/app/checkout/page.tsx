@@ -11,8 +11,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/context/AuthContext";
+import { useCart } from "@/context/CartContext";
+import api from "@/lib/api";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AxiosError, AxiosResponse } from "axios";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 const formSchema = z.object({
@@ -28,8 +34,8 @@ const formSchema = z.object({
     .max(19, { message: "Card number can't exceed 19 digits." })
     .refine(
       (val) => {
-        const digits = val.replace(/\s/g, "");
-        return /^\d+$/.test(digits) && digits.length >= 16;
+        const digits = val.split("-").join("");
+        return digits.length >= 16;
       },
       { message: "Please enter a valid card number." }
     ),
@@ -58,6 +64,31 @@ const formSchema = z.object({
 });
 
 const Checkout = () => {
+  const { user } = useAuth();
+  const { products } = useCart();
+
+  const fetchUserDetails = async () => {
+    try {
+      const response: AxiosResponse = await api.get(`/users/${user?.sub}`, {
+        requiresAuth: false, // Move requiresAuth to the config root
+      });
+      if (response.data) {
+        form.setValue("email", response.data.email);
+      } else {
+      }
+    } catch (error: unknown) {
+      if (error instanceof AxiosError && error.response) {
+        toast.error("failed while fetching user details");
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (user && user.sub) {
+      fetchUserDetails();
+    }
+  }, [user]);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -79,7 +110,18 @@ const Checkout = () => {
   };
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log("go", values);
+    console.log("go", { ...values, totalPrice: calculateTotal() });
+  };
+
+  const calculateTotal = () => {
+    return products.reduce((acc, item) => {
+      let subTotal = 0;
+      if (item.quantity) {
+        subTotal = item.price * item.quantity;
+      }
+      acc += subTotal;
+      return acc;
+    }, 0);
   };
 
   return (
@@ -90,8 +132,8 @@ const Checkout = () => {
             <CardHeader className="w-[60%]">
               <CardTitle className="text-4xl">Secure Checkout</CardTitle>
               <div className="text-2xl font-bold">Shipping Information</div>
-              <div>Username: will be embed</div>
-              <div>Email: will be embed</div>
+              <div>Username: {user?.user}</div>
+              <div>Email: {form.getValues("email")}</div>
               <FormField
                 control={form.control}
                 name="address"
@@ -204,47 +246,23 @@ const Checkout = () => {
                   <div className="ml-auto">Price</div>
                 </div>
                 <div className="max-h-60 overflow-y-auto">
-                  <div className="flex">
-                    <div className="w-[85%]">Item 1 (x1)</div>
-                    <div className="ml-auto">$100</div>
-                  </div>
-                  <div className="flex">
-                    <div className="w-[85%]">Item 2 (x1)</div>
-                    <div className="ml-auto">$100</div>
-                  </div>
-                  <div className="flex">
-                    <div className="w-[85%]">Item 3 (x1)</div>
-                    <div className="ml-auto">$100</div>
-                  </div>
-                  <div className="flex">
-                    <div className="w-[85%]">Item 3 (x1)</div>
-                    <div className="ml-auto">$100</div>
-                  </div>
-                  <div className="flex">
-                    <div className="w-[85%]">Item 3 (x1)</div>
-                    <div className="ml-auto">$100</div>
-                  </div>
-                  <div className="flex">
-                    <div className="w-[85%]">Item 3 (x1)</div>
-                    <div className="ml-auto">$100</div>
-                  </div>
-                  <div className="flex">
-                    <div className="w-[85%]">Item 3 (x1)</div>
-                    <div className="ml-auto">$100</div>
-                  </div>
-                  <div className="flex">
-                    <div className="w-[85%]">Item 3 (x1)</div>
-                    <div className="ml-auto">$100</div>
-                  </div>
-                  <div className="flex">
-                    <div className="w-[85%]">Item 3 (x1)</div>
-                    <div className="ml-auto">$100</div>
-                  </div>
+                  {products.map((product, index) => (
+                    <div key={index} className="flex">
+                      <div className="w-[85%]">
+                        {product.title.slice(0, 30)}...(x{product.quantity})
+                      </div>
+                      {product.quantity && (
+                        <div className="ml-auto">
+                          ${product.price * product.quantity}
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
               <div className="flex pl-2">
                 <div className="w-[85%] font-bold">Sub Total</div>
-                <div className="ml-auto">$100000</div>
+                <div className="ml-auto">${calculateTotal()}</div>
               </div>
               <Button className="cursor-pointer">Place Order</Button>
             </CardHeader>
