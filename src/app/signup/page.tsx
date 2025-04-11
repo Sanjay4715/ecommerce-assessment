@@ -24,6 +24,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Link from "next/link";
+import { AxiosError, AxiosResponse } from "axios";
+import api from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   username: z
@@ -50,8 +54,9 @@ const formSchema = z.object({
 });
 
 const Login = () => {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [loading, ] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const togglePasswordVisibility = () => {
     setShowPassword((prevState) => !prevState);
@@ -66,8 +71,38 @@ const Login = () => {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      setLoading(true);
+      const response: AxiosResponse = await api.post("/users", values, {
+        requiresAuth: false, // Move requiresAuth to the config root
+      });
+      const { id } = response.data;
+      console.log(response.data);
+      if (id) {
+        toast.success(
+          "User Registered Successfully. Redirecting to login page",
+          {
+            duration: 2000,
+          }
+        );
+        router.push("/login");
+      }
+      setLoading(false);
+    } catch (error: unknown) {
+      if (error instanceof AxiosError && error.response) {
+        if (error.response.status === 404) {
+          form.setError("username", { message: error.response.data.message });
+        }
+        if (error.response.status === 401) {
+          form.setError("password", { message: error.response.data.message });
+        }
+      } else {
+        console.error("Unexpected error:", error);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

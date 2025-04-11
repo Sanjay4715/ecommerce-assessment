@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useTheme } from "next-themes";
-import { Moon, Sun, Search, User } from "lucide-react";
+import { Moon, Sun, Search, User, User2Icon } from "lucide-react";
 
 import Logo from "@/public/Logo.svg";
 import { Input } from "@/components/ui/input";
@@ -11,10 +11,40 @@ import { IoCartOutline } from "react-icons/io5";
 import CustomTooltip from "@/components/CustomTooltip/CustomTooltip";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useEffect, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
+  const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const router = useRouter();
+  const [userLoading, setUserLoading] = useState<boolean>(true);
+  const [userInitial, setUserInitial] = useState<string>("");
+
+  useEffect(() => {
+    console.log(user);
+    setUserLoading(true);
+    if (user) {
+      setUserInitial(user.user.charAt(0).toUpperCase());
+    } else {
+      setUserInitial("");
+    }
+    setUserLoading(false);
+  }, [user]);
+
+  const handleLogout = () => {
+    logout();
+  };
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -67,12 +97,37 @@ const Header = () => {
             )}
           </div>
           <div>
-            <Button
-              className="cursor-pointer"
-              onClick={() => router.push("/login")}
-            >
-              <User /> User Login
-            </Button>
+            {userLoading ? (
+              <Skeleton className="h-12 w-12 rounded-full" />
+            ) : userInitial ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <Avatar className="cursor-pointer">
+                    <AvatarFallback>{userInitial}</AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuLabel className="flex items-center space-x-2">
+                    <User2Icon />
+                    <p>{user?.user}</p>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="cursor-pointer"
+                  >
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button
+                className="cursor-pointer"
+                onClick={() => router.push("/login")}
+              >
+                <User /> User Login
+              </Button>
+            )}
           </div>
         </nav>
       </div>
