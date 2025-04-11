@@ -3,15 +3,51 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useTheme } from "next-themes";
-import { Moon, Sun, Search } from "lucide-react";
+import { Moon, Sun, Search, User, User2Icon } from "lucide-react";
 
 import Logo from "@/public/Logo.svg";
 import { Input } from "@/components/ui/input";
+import { IoMdCart } from "react-icons/io";
 import { IoCartOutline } from "react-icons/io5";
 import CustomTooltip from "@/components/CustomTooltip/CustomTooltip";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useEffect, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useCart } from "@/context/CartContext";
+import { Badge } from "@/components/ui/badge";
 
 const Header = () => {
+  const { productCount } = useCart();
+  const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
+  const router = useRouter();
+  const [userLoading, setUserLoading] = useState<boolean>(true);
+  const [userInitial, setUserInitial] = useState<string>("");
+
+  useEffect(() => {
+    setUserLoading(true);
+    if (user) {
+      setUserInitial(user.user.charAt(0).toUpperCase());
+    } else {
+      setUserInitial("");
+    }
+    setUserLoading(false);
+  }, [user]);
+
+  const handleLogout = () => {
+    logout();
+  };
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -40,17 +76,29 @@ const Header = () => {
           />
         </div>
 
-        {/* Desktop Navigation */}
         <nav className="flex items-center space-x-6 ml-auto pl-5 pr-5">
-          <div>
-            <CustomTooltip
-              triggerContent={
-                <IoCartOutline className="h-5 w-5 cursor-pointer" />
-              }
-              message={<p>Check your cart</p>}
-            />
-          </div>
-          <div onClick={toggleTheme}>
+          <CustomTooltip
+            triggerContent={
+              productCount > 0 ? (
+                <div className="relative inline-block">
+                  <IoMdCart
+                    className="h-5 w-5 cursor-pointer"
+                    onClick={() => router.push("/cart")}
+                  />
+                  <Badge className="absolute -top-3 -right-4 text-xs px-1.5 py-0.5 rounded-full bg-[var(--site-primary)] text-white">
+                    {productCount}
+                  </Badge>
+                </div>
+              ) : (
+                <IoCartOutline
+                  className="h-5 w-5 cursor-pointer"
+                  onClick={() => router.push("/cart")}
+                />
+              )
+            }
+            message={<p>Check your cart</p>}
+          />
+          <div onClick={toggleTheme} className="flex">
             {theme === "dark" ? (
               <CustomTooltip
                 triggerContent={<Sun size={18} className="cursor-pointer" />}
@@ -61,6 +109,39 @@ const Header = () => {
                 triggerContent={<Moon size={18} className="cursor-pointer" />}
                 message={<p>Dark Mode</p>}
               />
+            )}
+          </div>
+          <div>
+            {userLoading ? (
+              <Skeleton className="h-12 w-12 rounded-full" />
+            ) : userInitial ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <Avatar className="cursor-pointer">
+                    <AvatarFallback>{userInitial}</AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuLabel className="flex items-center space-x-2">
+                    <User2Icon />
+                    <p>{user?.user}</p>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="cursor-pointer"
+                  >
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button
+                className="cursor-pointer"
+                onClick={() => router.push("/login")}
+              >
+                <User /> User Login
+              </Button>
             )}
           </div>
         </nav>
