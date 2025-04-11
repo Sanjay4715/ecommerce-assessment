@@ -32,10 +32,14 @@ const CartProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <CardTitle className="w-[20%] flex justify-center">
           ${product.price}
         </CardTitle>
-        <CardTitle className="w-[20%] flex justify-center">1</CardTitle>
         <CardTitle className="w-[20%] flex justify-center">
-          ${product.price * 1}
+          {product?.quantity}
         </CardTitle>
+        {product?.quantity && (
+          <CardTitle className="w-[20%] flex justify-center">
+            ${product.price * product?.quantity}
+          </CardTitle>
+        )}
       </CardHeader>
     </Card>
   );
