@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useAuth } from "./AuthContext";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
+import { AxiosError } from "axios";
 
 type CartContextType = {
   products: Product[];
@@ -27,10 +28,47 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [productCount, setProductCount] = useState<number>(0); // Add productCount state
 
+  const fetchCartproducts = async () => {
+    try {
+      if (user) {
+        const response = await api.get(`/carts/${user?.sub}`, {
+          requiresAuth: false,
+        });
+        if (response.data.products.length > 0) {
+          const products = response.data.products;
+          const finalProducts = [];
+          for (let i = 0; i < products.length; i++) {
+            const productResponse = await api.get(
+              `/products/${products[i].productId}`,
+              { requiresAuth: false }
+            );
+            if (productResponse.data) {
+              finalProducts.push({
+                ...productResponse.data,
+                quantity: products[i].quantity,
+              });
+            }
+          }
+          if (finalProducts.length > 0) {
+            localStorage.setItem("cartProducts", JSON.stringify(finalProducts));
+            setProducts(finalProducts);
+            setProductCount(finalProducts.length);
+          }
+        }
+      }
+      return [];
+    } catch (error: unknown) {
+      if (error instanceof AxiosError && error.response) {
+        toast.error("failed while fetching products of carts");
+      }
+    }
+  };
+
   // Update productCount whenever products change
   useEffect(() => {
+    fetchCartproducts();
     getCartFromLocalStorage();
-  }, []);
+  }, [user]);
 
   const getCartFromLocalStorage = (): Product[] => {
     const stringifiedProducts = localStorage.getItem("cartProducts");
@@ -44,9 +82,15 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const updateLocalStorage = (cartProducts: Product[]) => {
-    localStorage.setItem("cartProducts", JSON.stringify(cartProducts));
-    setProducts(cartProducts); // This will trigger the useEffect above
-    setProductCount(cartProducts.length);
+    if (cartProducts.length > 0) {
+      localStorage.setItem("cartProducts", JSON.stringify(cartProducts));
+      setProducts(cartProducts); // This will trigger the useEffect above
+      setProductCount(cartProducts.length);
+    } else {
+      localStorage.removeItem("cartProducts");
+      setProducts([]); // This will trigger the useEffect above
+      setProductCount(0);
+    }
   };
 
   const clearCart = async () => {
@@ -75,27 +119,31 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
     try {
       const stringifiedProducts = localStorage.getItem("cartProducts");
-      const cartProducts = JSON.parse(stringifiedProducts ?? "");
-      if (cartProducts) {
-        const productIndex = cartProducts.findIndex(
-          (item: Product) => item.id.toString() === product.id.toString()
-        );
+      if (stringifiedProducts) {
+        const cartProducts = JSON.parse(stringifiedProducts);
+        if (cartProducts && cartProducts.length > 0) {
+          const productIndex = cartProducts.findIndex(
+            (item: Product) => item.id.toString() === product.id.toString()
+          );
 
-        if (productIndex !== -1) {
-          if (product.quantity) {
-            cartProducts[productIndex].quantity += product.quantity;
+          if (productIndex !== -1) {
+            if (product.quantity) {
+              cartProducts[productIndex].quantity += product.quantity;
+            }
+            toast.success(
+              `Product ${product.title} quantity increased by ${product.quantity}`
+            );
+          } else {
+            cartProducts.push(product);
+            toast.success(
+              `Product ${product.title} added to cart with quantity ${product.quantity}`
+            );
           }
-          toast.success(
-            `Product ${product.title} quantity increased by ${product.quantity}`
-          );
-        } else {
-          cartProducts.push(product);
-          toast.success(
-            `Product ${product.title} added to cart with quantity ${product.quantity}`
-          );
+          updateLocalStorage(cartProducts);
         }
-
-        updateLocalStorage(cartProducts);
+      } else {
+        updateLocalStorage([product]);
+        toast.success("Product added on the cart");
       }
     } catch (error: unknown) {
       let errorMessage = "Failed to add product to cart";
@@ -127,19 +175,24 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   const productExistsOnCart = (id: string) => {
     const stringifiedProducts = localStorage.getItem("cartProducts");
-    const cartProducts = JSON.parse(stringifiedProducts ?? "");
-    // Find the index of the product in the cart
-    const productInCart = cartProducts.find(
-      (item: Product) => item.id.toString() === id.toString()
-    );
-    const productIndex = cartProducts.findIndex(
-      (item: Product) => item.id.toString() === id.toString()
-    );
-    if (productIndex !== -1) {
-      return { productInCart, status: true };
-    } else {
-      return { productInCart: null, status: false };
+    if (stringifiedProducts) {
+      const cartProducts = JSON.parse(stringifiedProducts ?? "");
+      if (cartProducts && cartProducts.length > 0) {
+        // Find the index of the product in the cart
+        const productInCart = cartProducts.find(
+          (item: Product) => item.id.toString() === id.toString()
+        );
+        const productIndex = cartProducts.findIndex(
+          (item: Product) => item.id.toString() === id.toString()
+        );
+        if (productIndex !== -1) {
+          return { productInCart, status: true };
+        } else {
+          return { productInCart: null, status: false };
+        }
+      }
     }
+    return { productInCart: [], status: false };
   };
 
   const getProductsInCart = () => {
