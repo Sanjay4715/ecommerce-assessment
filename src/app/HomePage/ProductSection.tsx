@@ -117,7 +117,7 @@ const ProductSection: React.FC<ProductSectionProps> = ({ categories }) => {
   return (
     <div className="space-y-2">
       <div className="flex flex-col md:flex-row  items-start md:items-center space-y-2 space-x-3">
-        <p className="text-2xl font-bold">Products</p>
+        <p className="text-2xl font-bold">All Products</p>
         <Input
           value={searchProduct}
           onChange={(e) => handleSearchProduct(e.target.value)}
