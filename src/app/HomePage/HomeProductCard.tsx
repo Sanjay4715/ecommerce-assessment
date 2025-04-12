@@ -91,7 +91,7 @@ const HomeProductCard: React.FC<CardProps> = ({ product }) => {
       <CardFooter className="mt-auto flex items-center">
         <div
           onClick={(e) => {
-            e.stopPropagation(); // ✅ prevent card click
+            e.stopPropagation(); // prevent bubbling up to the Card
             handleAddToCart(product);
           }}
           className="border-2 px-3 py-1 rounded-2xl bg-[var(--site-primary)] text-white text-sm dark:bg-white dark:text-black"
