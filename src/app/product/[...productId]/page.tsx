@@ -15,13 +15,13 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 const ProductDetails = () => {
-  const { addToCart, productExistsOnCart } = useCart();
+  const { updateCart, productExistsOnCart, products: cartProducts } = useCart();
   const params = useParams();
   const { productId } = params;
   const [isFetching, setIsFetching] = useState<boolean>(false);
   const [product, setProduct] = useState<Product | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
-  const [productInCart, setProductInCart] = useState<Product>();
+  const [productInCart, setProductInCart] = useState<Product | null>(null);
   const [productInCartQuantity, setProductInCartQuantity] = useState<number>(0);
 
   const fetchProductById = async (id: string) => {
@@ -59,20 +59,22 @@ const ProductDetails = () => {
       fetchProductById(productId[0]);
       checkIfProductExistsOnCart(productId[0]);
     }
-  }, [productId]);
+  }, [productId, cartProducts]);
 
   const checkIfProductExistsOnCart = async (id: string) => {
     const { productInCart } = await productExistsOnCart(id);
-    setProductInCart(productInCart);
+
     if (productInCart && productInCart.quantity) {
+      setProductInCart(productInCart);
       setProductInCartQuantity(productInCart.quantity);
     } else {
+      setProductInCart(null);
       setProductInCartQuantity(0);
     }
   };
 
-  const handleAddToCart = (product: Product) => {
-    addToCart({
+  const handleUpdateCart = (product: Product) => {
+    updateCart({
       ...product,
       quantity: productInCartQuantity === 0 ? 1 : productInCartQuantity,
     });
@@ -132,7 +134,7 @@ const ProductDetails = () => {
             </div>
             <Button
               className="w-fit cursor-pointer bg-[var(--site-primary)] dark:bg-white"
-              onClick={() => handleAddToCart(product)}
+              onClick={() => handleUpdateCart(product)}
             >
               {productInCart ? "Update In Cart" : "Add To Cart"}
             </Button>
