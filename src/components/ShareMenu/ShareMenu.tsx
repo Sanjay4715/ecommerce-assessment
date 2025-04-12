@@ -67,93 +67,91 @@ const ShareMenu = ({
   };
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className={`${className ?? ""} cursor-pointer`}
-        >
-          <Share2 className="h-7 w-7 " />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-64 space-y-3">
-        <div className="font-medium">Share this product</div>
-
-        <div className="grid grid-cols-3 gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleCopyLink}
-            title="Copy Link"
-            className="cursor-pointer"
-          >
-            <Copy className="h-5 w-5" />
+    <div onClick={(e) => e.stopPropagation()} className={`${className ?? ""}`}>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="ghost" size="icon" className="cursor-pointer">
+            <Share2 className="h-7 w-7 " />
           </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64 space-y-3">
+          <div className="font-medium">Share this product</div>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => window.open(socialLinks.facebook, "_blank")}
-            title="Facebook"
-            className="cursor-pointer"
-          >
-            <Facebook className="h-5 w-5" />
-          </Button>
+          <div className="grid grid-cols-3 gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleCopyLink}
+              title="Copy Link"
+              className="cursor-pointer"
+            >
+              <Copy className="h-5 w-5" />
+            </Button>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => window.open(socialLinks.twitter, "_blank")}
-            title="Twitter"
-            className="cursor-pointer"
-          >
-            <Twitter className="h-5 w-5" />
-          </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => window.open(socialLinks.facebook, "_blank")}
+              title="Facebook"
+              className="cursor-pointer"
+            >
+              <Facebook className="h-5 w-5" />
+            </Button>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => window.open(socialLinks.whatsapp, "_blank")}
-            title="WhatsApp"
-            className="cursor-pointer"
-          >
-            <MessageCircle className="h-5 w-5" />
-          </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => window.open(socialLinks.twitter, "_blank")}
+              title="Twitter"
+              className="cursor-pointer"
+            >
+              <Twitter className="h-5 w-5" />
+            </Button>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => window.open(socialLinks.telegram, "_blank")}
-            title="Telegram"
-            className="cursor-pointer"
-          >
-            <Send className="h-5 w-5" />
-          </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => window.open(socialLinks.whatsapp, "_blank")}
+              title="WhatsApp"
+              className="cursor-pointer"
+            >
+              <MessageCircle className="h-5 w-5" />
+            </Button>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => window.open(socialLinks.email, "_blank")}
-            title="Email"
-            className="cursor-pointer"
-          >
-            <Mail className="h-5 w-5" />
-          </Button>
-        </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => window.open(socialLinks.telegram, "_blank")}
+              title="Telegram"
+              className="cursor-pointer"
+            >
+              <Send className="h-5 w-5" />
+            </Button>
 
-        <div className="pt-2">
-          <Button
-            onClick={handleNativeShare}
-            variant="outline"
-            className="w-full flex items-center gap-2 cursor-pointer"
-          >
-            <Globe className="h-4 w-4" />
-            Native Share
-          </Button>
-        </div>
-      </PopoverContent>
-    </Popover>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => window.open(socialLinks.email, "_blank")}
+              title="Email"
+              className="cursor-pointer"
+            >
+              <Mail className="h-5 w-5" />
+            </Button>
+          </div>
+
+          <div className="pt-2">
+            <Button
+              onClick={handleNativeShare}
+              variant="outline"
+              className="w-full flex items-center gap-2 cursor-pointer"
+            >
+              <Globe className="h-4 w-4" />
+              Native Share
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 };
 
