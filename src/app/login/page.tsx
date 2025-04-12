@@ -78,10 +78,8 @@ const Login = () => {
         requiresAuth: false, // Move requiresAuth to the config root
       });
       const { token } = response.data;
-      console.log(response.data);
       if (token) {
         const decodedData: User = jwtDecode(token);
-        console.log(decodedData);
         await login(token, decodedData);
         router.push("/");
         setLoading(false);

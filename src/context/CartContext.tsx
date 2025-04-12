@@ -12,6 +12,7 @@ type CartContextType = {
   productCount: number; // Add productCount to context
   clearCart: () => void;
   addToCart: (product: Product) => void;
+  updateCart: (product: Product) => void;
   removeFromCart: (id: string) => void;
   productExistsOnCart: (id: string) => {
     productInCart: Product;
@@ -155,6 +156,47 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const updateCart = async (product: Product) => {
+    if (!user) {
+      toast.error("Please login to add the product to cart");
+      router.push("/login");
+      return;
+    }
+
+    try {
+      const stringifiedProducts = localStorage.getItem("cartProducts");
+      if (stringifiedProducts) {
+        const cartProducts = JSON.parse(stringifiedProducts);
+        if (cartProducts && cartProducts.length > 0) {
+          const productIndex = cartProducts.findIndex(
+            (item: Product) => item.id.toString() === product.id.toString()
+          );
+
+          if (productIndex !== -1) {
+            if (product.quantity) {
+              cartProducts[productIndex].quantity = product.quantity;
+            }
+            toast.success(
+              `Product ${product.title} quantity updated to ${product.quantity}`
+            );
+          } else {
+            cartProducts.push(product);
+            toast.success(`Product ${product.title} with quantity  ${product.quantity} added to cart.`)
+          }
+          updateLocalStorage(cartProducts);
+        }
+      } else {
+        updateLocalStorage([product]);
+      }
+    } catch (error: unknown) {
+      let errorMessage = "Failed to update product to cart";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
+    }
+  };
+
   const removeFromCart = async (id: string) => {
     try {
       const cartProducts = getCartFromLocalStorage();
@@ -192,7 +234,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
     }
-    return { productInCart: [], status: false };
+    return { productInCart: null, status: false };
   };
 
   const getProductsInCart = () => {
@@ -207,6 +249,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         products,
         productCount, // Include productCount in context value
         addToCart,
+        updateCart,
         clearCart,
         removeFromCart,
         productExistsOnCart,

@@ -28,7 +28,7 @@ import { useCart } from "@/context/CartContext";
 import { Badge } from "@/components/ui/badge";
 
 const Header = () => {
-  const { productCount } = useCart();
+  const { productCount, clearCart } = useCart();
   const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const router = useRouter();
@@ -47,6 +47,7 @@ const Header = () => {
 
   const handleLogout = () => {
     logout();
+    clearCart();
   };
 
   const toggleTheme = () => {

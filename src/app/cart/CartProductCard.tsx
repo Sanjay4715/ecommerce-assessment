@@ -10,18 +10,28 @@ import { useRouter } from "next/navigation";
 import { AiFillDelete } from "react-icons/ai";
 import CustomTooltip from "@/components/CustomTooltip/CustomTooltip";
 import { useCart } from "@/context/CartContext";
+import { Button } from "@/components/ui/button";
+import { Minus, Plus } from "lucide-react";
 interface ProductCardProps {
   product: Product;
 }
 
 const CartProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const { removeFromCart } = useCart();
+  const { removeFromCart, updateCart } = useCart();
   const router = useRouter();
   const [src, setSrc] = useState(product.image);
+  const [productInCartQuantity, setProductInCartQuantity] = useState<number>(
+    product.quantity ?? 0
+  );
 
   useEffect(() => {
     setSrc(product.image);
   }, [product]);
+
+  const handleUpdateCart = (product: Product, productQuantity: number) => {
+    setProductInCartQuantity(productQuantity);
+    updateCart({ ...product, quantity: productQuantity });
+  };
 
   return (
     <Card className="gap-0 pr-0">
@@ -48,12 +58,31 @@ const CartProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <CardTitle className="w-[20%] flex justify-center">
           ${product.price}
         </CardTitle>
-        <CardTitle className="w-[20%] flex justify-center">
-          {product?.quantity}
-        </CardTitle>
-        {product?.quantity && (
+        <div className="flex items-center space-x-3">
+          <Button
+            onClick={
+              productInCartQuantity === 1
+                ? () => {}
+                : () => handleUpdateCart(product, productInCartQuantity - 1)
+            }
+            disabled={productInCartQuantity === 1}
+            className="cursor-pointer bg-[var(--site-primary)] dark:bg-white"
+          >
+            <Minus />
+          </Button>
           <CardTitle className="w-[20%] flex justify-center">
-            ${product.price * product?.quantity}
+            {productInCartQuantity}
+          </CardTitle>
+          <Button
+            onClick={() => handleUpdateCart(product, productInCartQuantity + 1)}
+            className="cursor-pointer bg-[var(--site-primary)] dark:bg-white"
+          >
+            <Plus />
+          </Button>
+        </div>
+        {productInCartQuantity && (
+          <CardTitle className="w-[20%] flex justify-center">
+            ${product.price * productInCartQuantity}
           </CardTitle>
         )}
         <CustomTooltip

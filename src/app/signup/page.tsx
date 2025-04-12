@@ -78,7 +78,6 @@ const Login = () => {
         requiresAuth: false, // Move requiresAuth to the config root
       });
       const { id } = response.data;
-      console.log(response.data);
       if (id) {
         toast.success(
           "User Registered Successfully. Redirecting to login page",

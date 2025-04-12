@@ -114,7 +114,7 @@ const Checkout = () => {
   };
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log("go", { ...values, totalPrice: calculateTotal() });
+    console.log("final submit", { ...values, totalPrice: calculateTotal() });
     setIsLoading(true);
     clearCart();
     toast.success("Order placed successfully");
