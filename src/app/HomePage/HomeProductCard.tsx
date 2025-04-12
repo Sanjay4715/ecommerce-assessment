@@ -17,6 +17,7 @@ import Logo from "@/public/Logo.svg";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import CustomTooltip from "@/components/CustomTooltip/CustomTooltip";
+import ShareMenu from "@/components/ShareMenu/ShareMenu";
 
 interface CardProps {
   product: Product;
@@ -87,8 +88,11 @@ const HomeProductCard: React.FC<CardProps> = ({ product }) => {
           </Badge>
         </CardTitle>
       </CardContent>
-      <CardFooter className="mt-auto" onClick={() => handleAddToCart(product)}>
-        <div className="border-2 px-3 py-1 rounded-2xl bg-[var(--site-primary)] text-white text-sm dark:bg-white dark:text-black">
+      <CardFooter className="mt-auto flex items-center">
+        <div
+          onClick={() => handleAddToCart(product)}
+          className="border-2 px-3 py-1 rounded-2xl bg-[var(--site-primary)] text-white text-sm dark:bg-white dark:text-black"
+        >
           {inCart ? (
             <CustomTooltip
               triggerContent="In cart"
@@ -101,6 +105,7 @@ const HomeProductCard: React.FC<CardProps> = ({ product }) => {
             />
           )}
         </div>
+        <ShareMenu title={product.title} className="ml-auto" />
       </CardFooter>
     </Card>
   );

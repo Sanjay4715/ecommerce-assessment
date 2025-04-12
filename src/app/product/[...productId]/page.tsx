@@ -1,6 +1,7 @@
 "use client";
 
 import HomeProductCard from "@/app/HomePage/HomeProductCard";
+import ShareMenu from "@/components/ShareMenu/ShareMenu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Rating } from "@/components/ui/rating";
@@ -9,7 +10,8 @@ import { useCart } from "@/context/CartContext";
 import { Product } from "@/interface/product";
 import api from "@/lib/api";
 import { AxiosError, AxiosResponse } from "axios";
-import { LoaderCircle, Minus, Plus } from "lucide-react";
+import { ArrowLeft, LoaderCircle, Minus, Plus } from "lucide-react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -91,6 +93,10 @@ const ProductDetails = () => {
 
   return (
     <div className="min-h-[90vh] pl-5 pr-5 sm:pl-40 sm:pr-40 pt-5 pb-5 space-y-5">
+      <Link href={"/"} className="flex items-center hover:underline">
+        <ArrowLeft />
+        Go back to Product list
+      </Link>
       {product && (
         <div className="flex space-x-10">
           <div>
@@ -98,7 +104,10 @@ const ProductDetails = () => {
           </div>
           <div className="flex flex-col space-y-2">
             <div className="space-x-3">
-              <div className="text-3xl font-bold">{product.title}</div>
+              <div className="text-3xl font-bold flex items-center space-x-2">
+                <p>{product.title}</p>
+                <ShareMenu title={product.title} />
+              </div>
               <Badge variant={"outline"}>{product.category}</Badge>
               <div className="flex items-center space-x-2">
                 <Rating value={product.rating.rate} />
