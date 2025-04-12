@@ -52,7 +52,10 @@ const HomeProductCard: React.FC<CardProps> = ({ product }) => {
   };
 
   return (
-    <Card className="border-0 z-1 flex gap-3 cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:scale-[1.02]">
+    <Card
+      onClick={() => router.push(`/product/${product.id}`)}
+      className="border-0 z-1 flex gap-3 cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:scale-[1.02]"
+    >
       <div className="relative aspect-square w-full h-50 overflow-hidden rounded-tl-lg rounded-tr-lg">
         <Image
           src={imageSrc}
@@ -66,10 +69,7 @@ const HomeProductCard: React.FC<CardProps> = ({ product }) => {
         />
       </div>
       <CardHeader>
-        <CardTitle
-          className="cursor-pointer hover:underline"
-          onClick={() => router.push(`/product/${product.id}`)}
-        >
+        <CardTitle className="cursor-pointer hover:underline">
           {product.title}
         </CardTitle>
       </CardHeader>
@@ -90,7 +90,10 @@ const HomeProductCard: React.FC<CardProps> = ({ product }) => {
       </CardContent>
       <CardFooter className="mt-auto flex items-center">
         <div
-          onClick={() => handleAddToCart(product)}
+          onClick={(e) => {
+            e.stopPropagation(); // ✅ prevent card click
+            handleAddToCart(product);
+          }}
           className="border-2 px-3 py-1 rounded-2xl bg-[var(--site-primary)] text-white text-sm dark:bg-white dark:text-black"
         >
           {inCart ? (
