@@ -3,10 +3,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useTheme } from "next-themes";
-import { Moon, Sun, Search, User, User2Icon } from "lucide-react";
+import { Moon, Sun, User, User2Icon } from "lucide-react";
 
 import Logo from "@/public/Logo.svg";
-import { Input } from "@/components/ui/input";
 import { IoMdCart } from "react-icons/io";
 import { IoCartOutline } from "react-icons/io5";
 import CustomTooltip from "@/components/CustomTooltip/CustomTooltip";
@@ -26,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useCart } from "@/context/CartContext";
 import { Badge } from "@/components/ui/badge";
+import SearchProducts from "./SearchProducts";
 
 const Header = () => {
   const { productCount, clearCart } = useCart();
@@ -67,17 +67,9 @@ const Header = () => {
           />
         </Link>
 
-        <div className="relative w-full">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 cursor-pointer">
-            <Search className="h-4 w-4" />
-          </div>
-          <Input
-            placeholder="Search Products"
-            className="focus-visible:border-[var(--site-primary)] focus-visible:ring-[var(--site-primary)] focus-visible:ring-[1px] pl-10"
-          />
-        </div>
+        <SearchProducts />
 
-        <nav className="flex items-center space-x-6 ml-auto pl-5 pr-5">
+        <div className="flex items-center justify-center text-center ml-auto pl-1 pr-1 md:pl-3 md:pr-3">
           <CustomTooltip
             triggerContent={
               productCount > 0 ? (
@@ -91,15 +83,20 @@ const Header = () => {
                   </Badge>
                 </div>
               ) : (
-                <IoCartOutline
-                  className="h-5 w-5 cursor-pointer"
-                  onClick={() => router.push("/cart")}
-                />
+                <div className="w-7 md:h-12 md:w-12 flex items-center justify-center">
+                  <IoCartOutline
+                    className="h-5 w-5 cursor-pointer"
+                    onClick={() => router.push("/cart")}
+                  />
+                </div>
               )
             }
             message={<p>Check your cart</p>}
           />
-          <div onClick={toggleTheme} className="flex">
+          <div
+            onClick={toggleTheme}
+            className="w-7 md:h-12 md:w-12 flex items-center justify-center"
+          >
             {theme === "dark" ? (
               <CustomTooltip
                 triggerContent={<Sun size={18} className="cursor-pointer" />}
@@ -137,15 +134,23 @@ const Header = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button
-                className="cursor-pointer"
-                onClick={() => router.push("/login")}
-              >
-                <User /> User Login
-              </Button>
+              <>
+                <Button
+                  className="cursor-pointer hidden md:flex"
+                  onClick={() => router.push("/login")}
+                >
+                  <User /> User Login
+                </Button>
+                <Button
+                  className="cursor-pointer flex md:hidden"
+                  onClick={() => router.push("/login")}
+                >
+                  <User /> Login
+                </Button>
+              </>
             )}
           </div>
-        </nav>
+        </div>
       </div>
     </header>
   );
