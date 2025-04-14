@@ -106,7 +106,7 @@ const ProductDetails = () => {
             <div className="space-x-3">
               <div className="text-3xl font-bold flex items-center space-x-2">
                 <p>{product.title}</p>
-                <ShareMenu title={product.title} />
+                <ShareMenu product={product} />
               </div>
               <Badge variant={"outline"}>{product.category}</Badge>
               <div className="flex items-center space-x-2">
