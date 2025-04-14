@@ -7,6 +7,16 @@ import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { AxiosError } from "axios";
 
+type CartProducts = {
+  id: string;
+  quantity: number;
+};
+
+type CartPayload = {
+  userId: string;
+  products: CartProducts[];
+};
+
 type CartContextType = {
   products: Product[];
   productCount: number; // Add productCount to context
@@ -111,6 +121,38 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const createCartPayload = (details: Product[], userId: string) => {
+    const payload = {
+      userId,
+      products: details.map((item: Product) => {
+        return {
+          id: item.id,
+          quantity: item.quantity ?? 1,
+        };
+      }),
+    };
+    return payload;
+  };
+
+  const addCartThroughAPI = async (payload: CartPayload) => {
+    try {
+      const response = await api.post(`/carts`, payload, {
+        requiresAuth: true,
+      });
+      console.log(response);
+      if (response.data.id) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error: unknown) {
+      if (error instanceof AxiosError && error.response) {
+        toast.error("failed while fetching products of carts");
+        return false;
+      }
+    }
+  };
+
   const addToCart = async (product: Product) => {
     if (!user) {
       toast.error("Please login to add the product to cart");
@@ -123,6 +165,22 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       if (stringifiedProducts) {
         const cartProducts = JSON.parse(stringifiedProducts);
         if (cartProducts && cartProducts.length > 0) {
+          const payload = await createCartPayload(
+            cartProducts,
+            user?.sub ?? ""
+          );
+          if (payload && payload.userId) {
+            const apiResponse = await addCartThroughAPI(payload);
+            if (apiResponse) {
+              toast.success(
+                `product ${product.title} added successfully through API`
+              );
+            } else {
+              toast.error(
+                `Error adding product ${product.title} through API`
+              );
+            }
+          }
           const productIndex = cartProducts.findIndex(
             (item: Product) => item.id.toString() === product.id.toString()
           );
@@ -181,7 +239,9 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
             );
           } else {
             cartProducts.push(product);
-            toast.success(`Product ${product.title} with quantity  ${product.quantity} added to cart.`)
+            toast.success(
+              `Product ${product.title} with quantity  ${product.quantity} added to cart.`
+            );
           }
           updateLocalStorage(cartProducts);
         }
