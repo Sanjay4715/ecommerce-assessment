@@ -108,7 +108,7 @@ const HomeProductCard: React.FC<CardProps> = ({ product }) => {
             />
           )}
         </div>
-        <ShareMenu title={product.title} className="ml-auto" />
+        <ShareMenu product={product} className="ml-auto" />
       </CardFooter>
     </Card>
   );

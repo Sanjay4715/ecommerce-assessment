@@ -13,28 +13,32 @@ import {
   Globe,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Product } from "@/interface/product";
 
 const ShareMenu = ({
-  title,
+  product,
   className,
 }: {
-  title: string;
+  product: Product;
   className?: string;
 }) => {
-  const url = typeof window !== "undefined" ? window.location.href : "";
+  const url =
+    typeof window !== "undefined" ? window.location.origin + "/product" : "";
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(url);
+    navigator.clipboard.writeText(`${url}/${product.id}`);
     toast.success("Link copied to clipboard!");
   };
 
   const handleNativeShare = async () => {
     if (navigator.share) {
       try {
+        const { title, id } = product;
+        const customUrl = `${url}/${id}`;
         await navigator.share({
           title,
           text: "Check out this product!",
-          url,
+          url: customUrl,
         });
       } catch (error: unknown) {
         let errorMessage = "Sharing canceled or failed.";
@@ -50,20 +54,20 @@ const ShareMenu = ({
 
   const socialLinks = {
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-      url
+      `${url}/${product.id}`
     )}`,
     twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(
-      url
-    )}&text=${encodeURIComponent(title)}`,
+      `${url}/${product.id}`
+    )}&text=${encodeURIComponent(product.title)}`,
     whatsapp: `https://api.whatsapp.com/send?text=${encodeURIComponent(
-      title + " " + url
+      product.title + " " + `${url}/${product.id}`
     )}`,
     telegram: `https://t.me/share/url?url=${encodeURIComponent(
-      url
-    )}&text=${encodeURIComponent(title)}`,
+      `${url}/${product.id}`
+    )}&text=${encodeURIComponent(product.title)}`,
     email: `mailto:?subject=${encodeURIComponent(
-      title
-    )}&body=${encodeURIComponent(url)}`,
+      product.title
+    )}&body=${encodeURIComponent(`${url}/${product.id}`)}`,
   };
 
   return (
